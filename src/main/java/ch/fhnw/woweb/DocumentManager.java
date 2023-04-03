@@ -49,12 +49,20 @@ public class DocumentManager {
 
     private void apply(VectorClock eventClock, ChangeEvent event) {
         var change = new Change(eventClock, event);
+
+        // Compute the index at which the event has to be inserted.
         var i = computeInsertionIndex(eventClock);
+
+        // If the event's index is not in the list, it can simply be appended to it.
+        // The event can then be applied without requiring a full rebuild of the document.
         if (i == changes.size()) {
             event.apply(document);
             changes.add(change);
             return;
         }
+
+        // If the event is added somewhere between two existing events,
+        // then we need to rebuild the entire document.
         changes.add(i, change);
         rebuildDocument();
     }
@@ -73,7 +81,7 @@ public class DocumentManager {
         }
         return i + 1;
     }
-
+    
     private boolean isNextClock(VectorClock nextClock, int prevChangeIndex) {
         assert prevChangeIndex < changes.size();
         if (prevChangeIndex < 0) {
