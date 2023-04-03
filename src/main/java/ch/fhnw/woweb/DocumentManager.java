@@ -3,6 +3,12 @@ package ch.fhnw.woweb;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * {@code DocumentManager} represents and manages the local state of a document.
+ * It stores all registered events, alongside their vector clocks, and is able to sort and apply them correctly.
+ *
+ * @see VectorClock in-depth explanation on how vector clocks are used to sort events.
+ */
 public class DocumentManager {
     private final Document document = new Document();
     private final List<Change> changes = new ArrayList<>();
@@ -19,12 +25,22 @@ public class DocumentManager {
         return new Document(document);
     }
 
+    /**
+     * Applies an event caused by the local client to the document.
+     * @param event - The new event.
+     * @return The vector clock associated with the event. Has to be distributed to other clients.
+     */
     public VectorClock applyLocal(ChangeEvent event) {
         currentClock = currentClock.increment(ownedClockIndex);
         apply(currentClock, event);
         return currentClock;
     }
 
+    /**
+     * Applies an event caused by another client.
+     * @param event - The new event.
+     * @param eventClock - The vector clock associated with the new event.
+     */
     public void applyExternal(ChangeEvent event, VectorClock eventClock) {
         currentClock = currentClock.increment(ownedClockIndex);
         apply(eventClock, event);
